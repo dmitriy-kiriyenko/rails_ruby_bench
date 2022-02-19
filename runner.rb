@@ -15,8 +15,8 @@ TESTS = [
 TIMES = 30
 
 # Some potentially useful snippets
-WITH_COMPACT="export RUBY_COMPACT=YES && echo GC.compact > ~/rails_ruby_bench/work/discourse/config/initializers/900-gc-compact.rb"
-NO_COMPACT="export RUBY_COMPACT=NO && rm -f ~/rails_ruby_bench/work/discourse/config/initializers/900-gc-compact.rb"
+WITH_COMPACT="export RUBY_COMPACT=YES && echo GC.compact > ~/rails_ruby_bench/work/publify/config/initializers/900-gc-compact.rb"
+NO_COMPACT="export RUBY_COMPACT=NO && rm -f ~/rails_ruby_bench/work/publify/config/initializers/900-gc-compact.rb"
 
 # Checked system - error if the command fails
 def csystem(cmd, err, opts = {})

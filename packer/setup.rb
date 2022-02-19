@@ -17,9 +17,9 @@ benchmark_software = JSON.load(File.read("#{base}/benchmark_software.json"))
 RAILS_RUBY_BENCH_URL = ENV["RAILS_RUBY_BENCH_URL"]  # Cloned in ami.json
 RAILS_RUBY_BENCH_TAG = ENV["RAILS_RUBY_BENCH_TAG"]
 
-DISCOURSE_DIR = ENV["DISCOURSE_DIR"] || File.join(__dir__, "work", "discourse")
-DISCOURSE_URL = ENV["DISCOURSE_URL"] || benchmark_software["discourse"]["git_url"]
-DISCOURSE_TAG = ENV["DISCOURSE_TAG"] || benchmark_software["discourse"]["git_tag"]
+PUBLIFY_DIR = ENV["PUBLIFY_DIR"] || File.join(__dir__, "work", "publify")
+PUBLIFY_URL = ENV["PUBLIFY_URL"] || benchmark_software["publify"]["git_url"]
+PUBLIFY_TAG = ENV["PUBLIFY_TAG"] || benchmark_software["publify"]["git_tag"]
 
 class SystemPackerBuildError < RuntimeError; end
 
@@ -164,7 +164,7 @@ if BUILD_RUBY
           csystem "rvm use #{rvm_ruby_name} && gem install bundler -v1.17.3", "Couldn't install Bundler in #{RAILS_BENCH_DIR} for Ruby #{rvm_ruby_name.inspect}!", :bash => true
         end
 
-        if !ruby_hash.has_key?("discourse") || ruby_hash["discourse"]
+        if !ruby_hash.has_key?("publify") || ruby_hash["publify"]
           which_bundle = last_line_with_ruby("which bundle", rvm_ruby_name)
           puts "Fell through, trying to run bundle. Executable: #{which_bundle.inspect}"
           csystem "rvm use #{rvm_ruby_name} && bundle _1.17.3_", "Couldn't install RRB gems in #{RAILS_BENCH_DIR} for Ruby #{rvm_ruby_name.inspect}!", :bash => true
@@ -173,7 +173,7 @@ if BUILD_RUBY
 
     elsif ruby_hash["rvm_name"]
       csystem "rvm install #{ruby_hash["rvm_name"]}", "Couldn't use RVM to install Ruby named #{ruby_hash["rvm_name"]}!"
-      if ruby_hash["discourse"]
+      if ruby_hash["publify"]
         csystem "rvm use #{ruby_hash["rvm_name"]} && cd #{RAILS_BENCH_DIR} && bundle _1.17.3_", "Couldn't install RRB gems in #{RAILS_BENCH_DIR} for RVM-installed Ruby #{ruby_hash["rvm_name"]}!", :bash => true
       end
       csystem "rvm use #{ruby_hash["rvm_name"]} && gem install bundler -v1.17.3", "Couldn't install Bundler in #{RAILS_BENCH_DIR} for Ruby #{ruby_hash["rvm_name"].inspect}!", :bash => true
@@ -188,10 +188,10 @@ if BUILD_RUBY
   end
 end
 
-clone_or_update_repo(DISCOURSE_URL, DISCOURSE_TAG, DISCOURSE_DIR)
+clone_or_update_repo(PUBLIFY_URL, PUBLIFY_TAG, PUBLIFY_DIR)
 
 if LOCAL
-  Dir.chdir(DISCOURSE_DIR) { csystem "bundle _1.17.3_", "Couldn't install Discourse gems into system Ruby!", :bash => true }
+  Dir.chdir(PUBLIFY_DIR) { csystem "bundle _1.17.3_", "Couldn't install Discourse gems into system Ruby!", :bash => true }
 end
 
 Dir.chdir(RAILS_BENCH_DIR) do

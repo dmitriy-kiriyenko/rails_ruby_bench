@@ -19,7 +19,7 @@ class SystemPackerBuildError < RuntimeError; end
 
 print <<SETUP
 =========
-Running setup_discourse_gems.rb for Ruby-related software...
+Running setup_publify_gems.rb for Ruby-related software...
 =========
 SETUP
 
@@ -44,7 +44,7 @@ if LOCAL
 else
   RAILS_BENCH_DIR = File.join(Dir.pwd, "rails_ruby_bench")
 end
-DISCOURSE_DIR = File.join(RAILS_BENCH_DIR, "work", "discourse")
+PUBLIFY_DIR = File.join(RAILS_BENCH_DIR, "work", "publify")
 
 # Installing the Discourse gems takes awhile. Like, a *long*
 # while. And Packer turns out to have a bug where a step that takes
@@ -66,11 +66,11 @@ Dir["#{ENV["HOME"]}/.rvm/rubies/*"].each do |ruby_name|
   # gems, which is useless (and sometimes impossible) on older Rubies.
   match_hash = benchmark_software["compare_rubies"].detect { |hash| ruby_name[hash["found_name"]] }
   if match_hash
-    if !match_hash.has_key?("discourse") || match_hash["discourse"]
+    if !match_hash.has_key?("publify") || match_hash["publify"]
       first_ruby ||= ruby_name  # What's the first comparison Ruby that installs Discourse gems?
       puts "Install Discourse gems in Ruby: #{ruby_name.inspect}"
       Dir.chdir(RAILS_BENCH_DIR) do
-        csystem "rvm use #{ruby_name} && gem install bundler -v1.17.3 && bundle _1.17.3_", "Couldn't install Discourse gems in #{DISCOURSE_DIR} for Ruby #{ruby_name.inspect}!", :bash => true
+        csystem "rvm use #{ruby_name} && gem install bundler -v1.17.3 && bundle _1.17.3_", "Couldn't install Discourse gems in #{PUBLIFY_DIR} for Ruby #{ruby_name.inspect}!", :bash => true
       end
     end
   end
@@ -87,10 +87,10 @@ Dir.chdir(RAILS_BENCH_DIR) do
   rescue SystemPackerBuildError
     # Before dying, let's look at that Rails logfile... Redirect stdout to stderr.
     print "Error running test iterations of the benchmark, printing Rails log to console!\n==========\n"
-    print `tail -60 work/discourse/log/profile.log`   # If we echo too many lines they just get cut off by Packer
+    print `tail -60 work/publify/log/profile.log`   # If we echo too many lines they just get cut off by Packer
     print "=============\n"
     raise # Re-raise the error, we still want to die.
   end
 end
 
-FileUtils.touch "/tmp/setup_discourse_gems_ran_correctly"
+FileUtils.touch "/tmp/setup_publify_gems_ran_correctly"

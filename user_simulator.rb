@@ -28,16 +28,15 @@ def sentence
   sentence
 end
 
-ACTIONS = [:read_topic, :post_reply, :post_topic, :get_latest]  # Not active: :save_draft, :delete_reply. See below.
+ACTIONS = [:read_articles]
 
-class DiscourseClient
+class PublifyClient
   def initialize(options)
     @cookies = nil
     @csrf = nil
     @prefix = "http://localhost:#{options[:port_num]}"
 
-    @last_topics = Topic.order('id desc').limit(10).pluck(:id)
-    @last_posts = Post.order('id desc').limit(10).pluck(:id)
+    @last_articles = Article.order('id desc').limit(10).pluck(:id)
   end
 
   def get_csrf_token
@@ -66,57 +65,10 @@ class DiscourseClient
   # seed.
   def action_from_args(action_type, text, fp)
     case action_type
-    when :read_topic
+    when :read_acticle
       # Read Topic
-      topic_id = @last_topics[-1]
-      request(:get, "/t/#{topic_id}.json?track_visit=true&forceLoad=true")
-    when :save_draft
-      # Save draft - currently not active, need to fix 403. Wrong topic ID?
-      topic_id = @last_topics[-1]
-      post_id = @last_posts[-1]  # Not fully correct
-      draft_hash = { "reply" => text * 5, "action" => "edit", "title" => "Title of draft reply", "categoryId" => 11, "postId" => post_id, "archetypeId" => "regular", "metaData" => nil, "sequence" => 0 }
-      request(:post, "/draft.json", "draft_key" => "topic_#{topic_id}", "data" => draft_hash.to_json)
-    when :post_reply
-      # Post reply
-      request(:post, "/posts", "raw" => text * 5, "unlist_topic" => "false", "category" => "9", "topic_id" => topic_id, "is_warning" => "false", "archetype" => "regular", "typing_during_msecs" => "2900", "composer_open_duration_msecs" => "12114", "featured_link" => "", "nested_post" => "true")
-      # TODO: request(:delete, "/draft.json", "draft_key" => "topic_XX", "sequence" => "0")
-      # TODO: update @last_posts
-    when :post_topic
-      # Post new topic
-      request(:post, "/posts", "raw" => "", "title" => text, "unlist_topic" => "false", "category" => "", "is_warning" => "false", "archetype" => "regular", "typing_duration_msecs" => "6300", "composer_open_duration_msecs" => "31885", "nested_post" => "true")
-      # TODO: request(:delete, "/draft.json", "topic_id" => "topic_XX")
-      # TODO: request(:get, "/t/#{topic_id}.json?track_visit=true&forceLoad=true")
-      # TODO: update @last_topics
-=begin
-Started GET "/composer_messages?composer_action=createTopic&_=1483481672874" for ::1 at 2017-01-03 14:39:19 -0800
-lProcessing by ComposerMessagesController#index as JSON
-  Parameters: {"composer_action"=>"createTopic", "_"=>"1483481672874"}
-Completed 200 OK in 27ms (Views: 0.1ms | ActiveRecord: 1.6ms)
-Started GET "/similar_topics?title=This%20is%20a%20new%20topic.%20Totally.&raw=And%20this%20is%20the%20body.%20Yup!%20It%27s%20awesome.%0A&_=1483481672875" for ::1 at 2017-01-03 14:39:32 -0800
-Processing by SimilarTopicsController#index as JSON
-  Parameters: {"title"=>"This is a new topic. Totally.", "raw"=>"And this is the body. Yup! It's awesome.\n", "_"=>"1483481672875"}
-Completed 200 OK in 35ms (Views: 0.1ms | ActiveRecord: 16.0ms)
-Started POST "/draft.json" for ::1 at 2017-01-03 14:39:34 -0800
-Processing by DraftController#update as JSON
-  Parameters: {"draft_key"=>"new_topic", "data"=>"{\"reply\":\"And this is the body. Yup! It's awesome.\\n\",\"action\":\"createTopic\",\"title\":\"This is a new topic. Totally.\",\"categoryId\":null,\"postId\":null,\"archetypeId\":\"regular\",\"metaData\":null,\"composerTime\":14745,\"typingTime\":5000}", "sequence"=>"2"}
-Completed 200 OK in 14ms (Views: 0.3ms | ActiveRecord: 5.1ms)
-Started GET "/similar_topics?title=This%20is%20a%20new%20topic.%20Totally.&raw=And%20this%20is%20the%20body.%20Yup!%20It%27s%20awesome.%20Totally%20awesome.%0A&_=1483481672876" for ::1 at 2017-01-03 14:39:42 -0800
-Processing by SimilarTopicsController#index as JSON
-  Parameters: {"title"=>"This is a new topic. Totally.", "raw"=>"And this is the body. Yup! It's awesome. Totally awesome.\n", "_"=>"1483481672876"}
-Completed 200 OK in 23ms (Views: 0.1ms | ActiveRecord: 8.9ms)
-Started POST "/draft.json" for ::1 at 2017-01-03 14:39:42 -0800
-Processing by DraftController#update as JSON
-  Parameters: {"draft_key"=>"new_topic", "data"=>"{\"reply\":\"And this is the body. Yup! It's awesome. Totally awesome.\\n\",\"action\":\"createTopic\",\"title\":\"This is a new topic. Totally.\",\"categoryId\":null,\"postId\":null,\"archetypeId\":\"regular\",\"metaData\":null,\"composerTime\":23385,\"typingTime\":6300}", "sequence"=>"2"}
-Completed 200 OK in 8ms (Views: 0.2ms | ActiveRecord: 1.4ms)
-=end
-    when :delete_reply
-      # Delete reply, currently not active, need to get correct Post ID
-      request(:delete, "/posts/#{post_num}")
-      request(:get, "/posts/#{post_num - 1}")
-      # TODO: update @last_posts
-    when :get_latest
-      # Get latest
-      request(:get, "/latest.json?order=default")
+      article_id = @last_articles[-1]
+      request(:get, "/pages/#{article_id}")
     else
       raise "Something is wrong! Illegal value: #{action_type}"
     end
@@ -137,7 +89,7 @@ def time_actions(actions, user_offset, port_num)
   log "Simulating activity for user id #{user.id}: #{user.name}"
 
   log "Getting Rails CSRF token..."
-  client = DiscourseClient.new(port_num: port_num)
+  client = PublifyClient.new(port_num: port_num)
   client.get_csrf_token
 
   log "Logging in as #{user.username.inspect}... (not part of benchmark request time(s))"

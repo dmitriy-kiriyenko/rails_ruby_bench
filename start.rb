@@ -10,7 +10,7 @@ require 'get_process_mem'
 
 # Run this in "profile" environment for Discourse.
 ENV['RAILS_ENV'] = 'profile'
-require File.expand_path(File.join(File.dirname(__FILE__), "work/discourse/config/environment"))
+require File.expand_path(File.join(File.dirname(__FILE__), "work/publify/config/environment"))
 
 startup_iters = 2
 random_seed = 16541799507913229037  # Chosen via irb and '(1..20).map { (0..9).to_a.sample }.join("")'
@@ -109,7 +109,7 @@ def get_puma_worker_rss
   lines = out.split
   lines.each do |line|
     pid, rss, command = line.split("\t", 3)
-    if command =~ Regexp.new("cluster worker (\\d+): #{@started_pid} [discourse]")
+    if command =~ Regexp.new("cluster worker (\\d+): #{@started_pid} [publify]")
       offset = $1
       rss.push([pid, rss, offset])
     end
@@ -127,7 +127,7 @@ def server_start
   # Start the server
   @started_pid = fork do
     STDERR.print "In PID #{Process.pid}, starting server on port #{PORT_NUM}\n"
-    Dir.chdir "work/discourse"
+    Dir.chdir "work/publify"
     # Start Puma in a new process group to easily kill subprocesses if necessary
     exec({ "RAILS_ENV" => "profile" }, "bundle", "exec", "puma", "--config", "config/puma.rb", "--control", "tcp://127.0.0.1:#{CONTROL_PORT}", "--control-token", CONTROL_TOKEN, "-p", PORT_NUM.to_s, "-w", PUMA_PROCESSES.to_s, "-t", "1:#{PUMA_THREADS}", :pgroup => true)
   end
@@ -305,7 +305,7 @@ end
 
 def basic_iteration_get_http
   t0 = Time.now
-  RestClient.get "http://localhost:#{PORT_NUM}/benchmark/simple_request"
+  RestClient.get "http://localhost:#{PORT_NUM}/"
   (Time.now - t0).to_f
 end
 
@@ -398,14 +398,14 @@ test_data = {
     "out_dir" => out_dir,
     "out_file" => out_file || false,
     "no_warm_start" => no_warm_start,
-    "discourse_revision" => `cd work/discourse && git rev-parse HEAD`.chomp,
+    "publify_revision" => `cd work/publify && git rev-parse HEAD`.chomp,
   },
   "environment" => {
     "RUBY_VERSION" => RUBY_VERSION,
     "RUBY_DESCRIPTION" => RUBY_DESCRIPTION,
     "rvm current" => `rvm current 2>&1`.strip,
-    "discourse git status" => `cd work/discourse && git status`,
-    "discourse git sha" => `cd work/discourse && git rev-parse HEAD`.chomp,
+    "publify git status" => `cd work/publify && git status`,
+    "publify git sha" => `cd work/publify && git rev-parse HEAD`.chomp,
     "rails_ruby_bench git status" => `git status`,
     "rails_ruby_bench git sha" => `git rev-parse HEAD`,
     "ec2 instance id" => `wget -q -O - http://169.254.169.254/latest/meta-data/instance-id`,

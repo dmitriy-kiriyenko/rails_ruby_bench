@@ -3,26 +3,26 @@
       "git_url": "https://github.com/noahgibbs/rails_ruby_bench.git",
       "git_tag": ""
   },
-  "discourse": {
-      "git_url": "https://github.com/discourse/discourse.git",
+  "publify": {
+      "git_url": "https://github.com/publify/publify.git",
       "git_tag": "v1.8.0.beta13"
   },
   "compare_rubies": [
       {
           "rvm_name": "2.0.0-p0",
-          "discourse": false
+          "publify": false
       },
       {
           "rvm_name": "2.1.10",
-          "discourse": false
+          "publify": false
       },
       {
           "rvm_name": "2.2.10",
-          "discourse": false
+          "publify": false
       },
       {
           "rvm_name": "2.3.8",
-          "discourse": false
+          "publify": false
       },
       {
           "rvm_name": "2.4.5"

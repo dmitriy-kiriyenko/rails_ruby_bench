@@ -14,14 +14,14 @@ VERBOSE = LOCAL
 base = LOCAL ? File.expand_path('..', __FILE__) : "/home/ubuntu"
 benchmark_software = JSON.load(File.read("#{base}/benchmark_software.json"))
 
-DISCOURSE_GIT_URL    = benchmark_software["discourse"]["git_url"]
-DISCOURSE_TAG        = benchmark_software["discourse"]["git_tag"]
+PUBLIFY_GIT_URL    = benchmark_software["publify"]["git_url"]
+PUBLIFY_TAG        = benchmark_software["publify"]["git_tag"]
 
 class SystemPackerBuildError < RuntimeError; end
 
 print <<SETUP
 =========
-Running setup_discourse.rb for Ruby-related software...
+Running setup_publify.rb for Ruby-related software...
 =========
 SETUP
 
@@ -63,29 +63,29 @@ if LOCAL
 else
   RAILS_BENCH_DIR = File.join(Dir.pwd, "rails_ruby_bench")
 end
-DISCOURSE_DIR = File.join(RAILS_BENCH_DIR, "work", "discourse")
+PUBLIFY_DIR = File.join(RAILS_BENCH_DIR, "work", "publify")
 
-clone_or_update_repo DISCOURSE_GIT_URL, DISCOURSE_TAG, DISCOURSE_DIR
+clone_or_update_repo PUBLIFY_GIT_URL, PUBLIFY_TAG, PUBLIFY_DIR
 
 # Install Discourse gems into RVM-standard Ruby installed for Discourse
-Dir.chdir(DISCOURSE_DIR) do
-  csystem "gem install bundler -v1.17.3", "Couldn't install bundler for #{DISCOURSE_DIR} for Discourse's system Ruby!", :bash => true
-  csystem "bundle _1.17.3_", "Couldn't install Discourse gems for #{DISCOURSE_DIR} for Discourse's system Ruby!", :bash => true
+Dir.chdir(PUBLIFY_DIR) do
+  csystem "gem install bundler -v1.17.3", "Couldn't install bundler for #{PUBLIFY_DIR} for Discourse's system Ruby!", :bash => true
+  csystem "bundle _1.17.3_", "Couldn't install Discourse gems for #{PUBLIFY_DIR} for Discourse's system Ruby!", :bash => true
 end
 
 if LOCAL
   puts "\nIf not done already, you should setup the dependencies for Discourse: redis, postgres and node"
-  puts "https://github.com/discourse/discourse/blob/v1.8.0.beta13/docs/DEVELOPER-ADVANCED.md#preparing-a-fresh-ubuntu-install"
+  puts "https://github.com/publify/publify/blob/v1.8.0.beta13/docs/DEVELOPER-ADVANCED.md#preparing-a-fresh-ubuntu-install"
   puts
 end
 
-Dir.chdir(DISCOURSE_DIR) do
+Dir.chdir(PUBLIFY_DIR) do
   csystem "RAILS_ENV=profile bundle _1.17.3_ exec rake db:create", "Couldn't create Rails database!", :bash => true
-  csystem "RAILS_ENV=profile bundle _1.17.3_ exec rake db:migrate", "Failed running 'rake db:migrate' in #{DISCOURSE_DIR}!", :bash => true
+  csystem "RAILS_ENV=profile bundle _1.17.3_ exec rake db:migrate", "Failed running 'rake db:migrate' in #{PUBLIFY_DIR}!", :bash => true
 
   # TODO: use a better check for whether to rebuild precompiled assets
   unless File.exists? "public/assets"
-    csystem "RAILS_ENV=profile bundle _1.17.3_ exec rake assets:precompile", "Failed running 'rake assets:precompile' in #{DISCOURSE_DIR}!", :bash => true
+    csystem "RAILS_ENV=profile bundle _1.17.3_ exec rake assets:precompile", "Failed running 'rake assets:precompile' in #{PUBLIFY_DIR}!", :bash => true
   end
   unless File.exists? "public/uploads"
     FileUtils.mkdir "public/uploads"
@@ -101,7 +101,7 @@ end
 
 puts "Add assets.rb initializer for Discourse"
 # Minor bugfix for this version of Discourse. Can remove when I only use 1.8.0+ Discourse?
-ASSETS_INIT = File.join(DISCOURSE_DIR, "config/initializers/assets.rb")
+ASSETS_INIT = File.join(PUBLIFY_DIR, "config/initializers/assets.rb")
 unless File.exists?(ASSETS_INIT)
   File.open(ASSETS_INIT, "w") do |f|
     f.write <<-INITIALIZER
@@ -115,7 +115,7 @@ puts "Hack to disable CSRF protection during benchmark..."
 # user_simulator's CSRF handling stopped working between Discourse 1.7.X and
 # 1.8.0.beta10, but it clearly did. This is a horrible workaround and should
 # be fixed when I figure out the problem.
-APP_CONTROLLER = File.join(DISCOURSE_DIR, "app/controllers/application_controller.rb")
+APP_CONTROLLER = File.join(PUBLIFY_DIR, "app/controllers/application_controller.rb")
 contents = File.read(APP_CONTROLLER)
 original_line = "protect_from_forgery"
 patched_line = "#protect_from_forgery"
@@ -128,7 +128,7 @@ end
 # Oh and hey, looks like Bootsnap breaks something in the load order when
 # including config/environment into start.rb. Joy.
 # TODO: merge this patching into a little table of patches?
-path = File.join(DISCOURSE_DIR, "config/boot.rb")
+path = File.join(PUBLIFY_DIR, "config/boot.rb")
 contents = File.read(path)
 original_line = "if ENV['RAILS_ENV'] != 'production'"
 patched_line = "if ENV['RAILS_ENV'] != 'production' && ENV['RAILS_ENV'] != 'profile'"
@@ -138,4 +138,4 @@ unless contents[patched_line]
   end
 end
 
-FileUtils.touch "/tmp/setup_discourse_ran_correctly"
+FileUtils.touch "/tmp/setup_publify_ran_correctly"

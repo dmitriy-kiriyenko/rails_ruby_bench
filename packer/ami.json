@@ -39,19 +39,19 @@
 	"inline": "sudo mv /tmp/ami.json /home/ubuntu/ami.json"
     }, {
         "type": "shell",
-        "script": "discourse_install.sh"
+        "script": "publify_install.sh"
     }, {
         "type": "shell",
         "execute_command": "{{ .Vars }} /bin/bash -e -l {{ .Path }}",
-        "script": "discourse_install_rvm.sh"
+        "script": "publify_install_rvm.sh"
     }, {
         "type": "shell",
         "execute_command": "{{ .Vars }} /bin/bash -e -l {{ .Path }}",
-        "script": "discourse_install_node.sh"
+        "script": "publify_install_node.sh"
     }, {
         "type": "shell",
         "execute_command": "chmod +x {{ .Path }}; sudo su postgres -c '{{ .Vars }} {{ .Path }}'",
-        "script": "discourse_install_postgres.sh"
+        "script": "publify_install_postgres.sh"
     }, {
         "type": "shell",
 	"inline": [
@@ -64,10 +64,10 @@
     }, {
         "type": "shell",
         "execute_command": "cd /home/ubuntu; . .rvm/scripts/rvm; {{ .Vars }} ruby {{ .Path }}",
-        "script": "setup_discourse.rb"
+        "script": "setup_publify.rb"
     }, {
         "type": "shell",
-        "inline": "[ -f /tmp/setup_discourse_ran_correctly ] || (echo 'Setup_discourse.rb failed to run to completion...'; exit 1)  # Make sure setup_discourse.rb ran correctly"
+        "inline": "[ -f /tmp/setup_publify_ran_correctly ] || (echo 'Setup_publify.rb failed to run to completion...'; exit 1)  # Make sure setup_publify.rb ran correctly"
     }, {
         "type": "shell",
         "script": "misc_install.sh"
@@ -85,10 +85,10 @@
     }, {
         "type": "shell",
         "execute_command": "cd /home/ubuntu; . .rvm/scripts/rvm; {{ .Vars }} ruby {{ .Path }}",
-        "script": "setup_discourse_gems.rb"
+        "script": "setup_publify_gems.rb"
     }, {
         "type": "shell",
-        "inline": "[ -f /tmp/setup_discourse_gems_ran_correctly ] || (echo 'Setup_discourse.rb failed to run to completion...'; exit 1)  # Make sure setup_discourse_gems.rb ran correctly"
+        "inline": "[ -f /tmp/setup_publify_gems_ran_correctly ] || (echo 'Setup_publify.rb failed to run to completion...'; exit 1)  # Make sure setup_publify_gems.rb ran correctly"
     }, {
         "type": "shell",
         "script": "nginx_install.sh"
